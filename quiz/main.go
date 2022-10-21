@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+const (
+	Reset = "\033[0m"
+	Red   = "\033[31m"
+	Green = "\033[32m"
+)
+
 func main() {
 	// parse cli flag arguements
 	filename := flag.String("file", "problems.csv", "input file")
@@ -35,8 +41,26 @@ func main() {
 		data[line[0]] = line[1]
 	}
 
-	// print data
+	// iterate over questions
+	userPoints := 0
 	for k, v := range data {
-		fmt.Println(k, v)
+		// print question
+		fmt.Println(k)
+		// read answer user input
+		var answer string
+		fmt.Println("Your answer:")
+		fmt.Scanln(&answer)
+
+		// check answer
+		if answer == v {
+			userPoints++
+			fmt.Println(Green + "Correct!" + Reset)
+		} else {
+			fmt.Println(Red + "Incorrect!\n" + Reset + "The correct answer was " + v)
+		}
+		fmt.Println()
 	}
+
+	// print final score
+	fmt.Printf("You scored %d points\n", userPoints)
 }
