@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 )
 
 const (
@@ -16,7 +17,7 @@ const (
 
 func main() {
 	// parse cli flag arguements
-	filename := flag.String("file", "problems.csv", "input file")
+	filename := flag.String("f", "problems.csv", "input file")
 	flag.Parse()
 
 	// open file
@@ -41,26 +42,41 @@ func main() {
 		data[line[0]] = line[1]
 	}
 
-	// iterate over questions
+	// print final score at the end
 	userPoints := 0
+	defer fmt.Printf("You scored %d points out of %d!\n", userPoints, len(data))
+	var answer string
+	// channel for timeout
+	timeout := make(chan int)
+	// always scan for answers
+	go func() {
+		for {
+			fmt.Println("Your answer:")
+			fmt.Scanln(&answer)
+			timeout <- 1
+		}
+	}()
+	// iterate over questions
 	for k, v := range data {
 		// print question
-		fmt.Println(k)
-		// read answer user input
-		var answer string
-		fmt.Println("Your answer:")
-		fmt.Scanln(&answer)
+		fmt.Println("Question:", k)
 
-		// check answer
-		if answer == v {
-			userPoints++
-			fmt.Println(Green + "Correct!" + Reset)
-		} else {
-			fmt.Println(Red + "Incorrect!\n" + Reset + "The correct answer was " + v)
+		select {
+		// time is up
+		case <-time.After(3 * time.Second):
+			fmt.Println(Red + "Timed out, next!" + Reset)
+		// check user answer
+		case <-timeout:
+			if answer == v {
+				userPoints++
+				fmt.Println(Green + "Correct!" + Reset)
+			} else {
+				fmt.Println(Red + "Incorrect!\n" + Reset + "The correct answer was " + v)
+			}
+			// restet answer
+			answer = ""
 		}
 		fmt.Println()
 	}
 
-	// print final score
-	fmt.Printf("You scored %d points\n", userPoints)
 }
