@@ -15,13 +15,21 @@ const (
 	Green = "\033[32m"
 )
 
-func main() {
-	// parse cli flag arguements
-	filename := flag.String("f", "problems.csv", "input file")
-	flag.Parse()
+var (
+	UserPoints  = 0
+	Filename    string
+	TimeoutFlag int
+)
 
+func init() {
+	flag.IntVar(&TimeoutFlag, "t", 0, "Set timeout - 0 means no timeout")
+	flag.StringVar(&Filename, "f", "problems.csv", "input file")
+	flag.Parse()
+}
+
+func main() {
 	// open file
-	file, err := os.Open(*filename)
+	file, err := os.Open(Filename)
 	if err != nil {
 		panic(err)
 	}
@@ -42,9 +50,6 @@ func main() {
 		data[line[0]] = line[1]
 	}
 
-	// print final score at the end
-	userPoints := 0
-	defer fmt.Printf("You scored %d points out of %d!\n", userPoints, len(data))
 	var answer string
 	// channel for timeout
 	timeout := make(chan int)
@@ -61,22 +66,34 @@ func main() {
 		// print question
 		fmt.Println("Question:", k)
 
-		select {
-		// time is up
-		case <-time.After(3 * time.Second):
-			fmt.Println(Red + "Timed out, next!" + Reset)
-		// check user answer
-		case <-timeout:
-			if answer == v {
-				userPoints++
-				fmt.Println(Green + "Correct!" + Reset)
-			} else {
-				fmt.Println(Red + "Incorrect!\n" + Reset + "The correct answer was " + v)
+		if TimeoutFlag != 0 {
+			select {
+			// time is up
+			case <-time.After(time.Duration(TimeoutFlag) * time.Second):
+				fmt.Println(Red + "Timed out, next!" + Reset)
+			case <-timeout:
+				UserPoints += checkAnswer(answer, v)
+				// restet answer
+				answer = ""
 			}
+		} else {
+			<-timeout
+			UserPoints += checkAnswer(answer, v)
 			// restet answer
 			answer = ""
 		}
 		fmt.Println()
 	}
+	fmt.Printf("You scored %d points out of %d!\n", UserPoints, len(data))
 
+}
+
+func checkAnswer(answer, solution string) int {
+	if answer == solution {
+		fmt.Println(Green + "Correct!" + Reset)
+		return 1
+	} else {
+		fmt.Println(Red + "Incorrect!\n" + Reset + "The correct answer was " + solution)
+		return 0
+	}
 }
