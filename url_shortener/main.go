@@ -4,14 +4,26 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v3"
 )
 
 var (
-	pathsToUrls = ParseYAML([]byte("dogs: 'https://www.somesite.com/a-story-about-dogs'\ncats: 'https://www.somesite.com/a-story-about-cats'"))
+	pathsToUrls map[string]string
 )
+
+// parse yaml to urls
+func init() {
+	// open file containing the urls
+	file, err := os.ReadFile("PathsToUrls.yaml")
+	if err != nil {
+		log.Fatal(err)
+	}
+	// parse file into yaml
+	pathsToUrls = ParseYAML([]byte(file))
+}
 
 func main() {
 	r := mux.NewRouter()
