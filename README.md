@@ -1,6 +1,9 @@
 # Gophercises
-*https://github.com/gophercises*\
-Exercises for budding gophers (Go developers) solutions by me.
+*https://github.com/gophercises*
+
+Exercises for budding gophers (Go developers) 
+solutions by me.
+
 ## Quiz Game
 *https://github.com/gophercises/quiz*
 
@@ -8,7 +11,6 @@ Exercises for budding gophers (Go developers) solutions by me.
 - [x] Part 2
 - [x] Bonus
 
----
 ## URL Shortener
 *https://github.com/gophercises/urlshort*
 
