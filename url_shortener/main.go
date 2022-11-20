@@ -2,16 +2,15 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"gopkg.in/yaml.v3"
 )
 
 var (
-	pathsToUrls = map[string]string{
-		"dogs": "https://www.somesite.com/a-story-about-dogs",
-		"cats": "https://www.somesite.com/a-story-about-cats",
-	}
+	pathsToUrls = ParseYAML([]byte("dogs: 'https://www.somesite.com/a-story-about-dogs'\ncats: 'https://www.somesite.com/a-story-about-cats'"))
 )
 
 func main() {
@@ -41,4 +40,15 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte("<h1>The requested URL was not found.</h1>\n"))
+}
+
+// get urls from yaml
+func ParseYAML(data []byte) (yamlData map[string]string) {
+	// parse yaml data
+	err := yaml.Unmarshal(data, &yamlData)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// return yaml as map[string]string)
+	return yamlData
 }
