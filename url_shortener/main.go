@@ -8,15 +8,22 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
 	"gopkg.in/yaml.v3"
 )
 
 var (
 	pathsToUrls map[string]string
+	DB          Database
 )
 
-// parse yaml to urls
+type Database struct {
+	db     *bolt.DB
+	tx     *bolt.Tx
+	bucket *bolt.Bucket
+}
+
 func init() {
 	// YAML file as a flag
 	var filename string
@@ -37,6 +44,24 @@ func init() {
 }
 
 func main() {
+	// connect to database
+	var err error
+	DB.db, err = bolt.Open("urls.db", 0600, nil)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer DB.db.Close()
+	// Start a writable transaction.
+	DB.tx, err = DB.db.Begin(true)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer DB.tx.Rollback()
+	// create bucket
+	DB.bucket, err = DB.tx.CreateBucket([]byte("Redirects"))
+	if err != nil {
+		log.Fatal(err)
+	}
 	r := mux.NewRouter()
 
 	// define routes
