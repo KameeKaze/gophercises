@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
@@ -16,8 +17,12 @@ var (
 
 // parse yaml to urls
 func init() {
+	// YAML file as a flag
+	filename := flag.String("f", "PathsToUrls.yaml", "Accept YAML file as a flag")
+	flag.Parse()
+
 	// open file containing the urls
-	file, err := os.ReadFile("PathsToUrls.yaml")
+	file, err := os.ReadFile(*filename)
 	if err != nil {
 		log.Fatal(err)
 	}

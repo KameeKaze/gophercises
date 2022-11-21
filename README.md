@@ -14,6 +14,8 @@ solutions by me.
 ## URL Shortener
 *https://github.com/gophercises/urlshort*
 
-- [x] Part 1
-- [ ] Bonus
+- [x] Task
+- [x] Bonus 1
+- [ ] Bonus 2
+- [ ] Bonus 3
 
