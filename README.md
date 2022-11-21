@@ -17,5 +17,5 @@ solutions by me.
 - [x] Task
 - [x] Bonus 1
 - [x] Bonus 2
-- [ ] Bonus 3
+- [x] Bonus 3
 

@@ -62,6 +62,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	// read into database from file
+	for k, v := range pathsToUrls {
+		err = DB.Put([]byte(k), []byte(v))
+		if err != nil {
+			log.Fatal(err)
+		}
+	}
 	r := mux.NewRouter()
 
 	// define routes
@@ -77,7 +84,7 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 	// get url parameter
 	url := mux.Vars(r)["url"]
 	// check if url exists, if it does redirect to the path
-	if newUrl := pathsToUrls[url]; newUrl != "" {
+	if newUrl := DB.Get([]byte(url)); newUrl != "" {
 		http.Redirect(w, r, newUrl, http.StatusPermanentRedirect)
 	} else { // else 404 not found
 		NotFoundHandler(w, r)
@@ -110,4 +117,14 @@ func ParseJSON(data []byte) (jsonData map[string]string) {
 	}
 	// return json as map[string]string)
 	return jsonData
+}
+
+func (db *Database) Put(key, value []byte) error {
+	err := db.bucket.Put(key, value)
+	return err
+}
+
+func (db *Database) Get(key []byte) string {
+	v := db.bucket.Get(key)
+	return string(v)
 }
