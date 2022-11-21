@@ -19,3 +19,9 @@ solutions by me.
 - [x] Bonus 2
 - [x] Bonus 3
 
+## Choose your own adventure
+*https://github.com/gophercises/cyoa*
+
+- [ ] Task
+- [ ] Bonus 1
+- [ ] Bonus 2
