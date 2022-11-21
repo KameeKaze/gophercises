@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -18,16 +19,21 @@ var (
 // parse yaml to urls
 func init() {
 	// YAML file as a flag
-	filename := flag.String("f", "PathsToUrls.yaml", "Accept YAML file as a flag")
+	var filename string
+	flag.StringVar(&filename, "f", "PathsToUrls.yaml", "Accept YAML file as a flag")
 	flag.Parse()
 
 	// open file containing the urls
-	file, err := os.ReadFile(*filename)
+	file, err := os.ReadFile(filename)
 	if err != nil {
 		log.Fatal(err)
 	}
-	// parse file into yaml
-	pathsToUrls = ParseYAML([]byte(file))
+	// check file extension and parse into map
+	if filename[len(filename)-4:] == "json" {
+		pathsToUrls = ParseJSON([]byte(file))
+	} else {
+		pathsToUrls = ParseYAML([]byte(file))
+	}
 }
 
 func main() {
@@ -68,4 +74,15 @@ func ParseYAML(data []byte) (yamlData map[string]string) {
 	}
 	// return yaml as map[string]string)
 	return yamlData
+}
+
+// get urls from json
+func ParseJSON(data []byte) (jsonData map[string]string) {
+	// parse json data
+	err := json.Unmarshal(data, &jsonData)
+	if err != nil {
+		log.Fatal(err)
+	}
+	// return json as map[string]string)
+	return jsonData
 }
