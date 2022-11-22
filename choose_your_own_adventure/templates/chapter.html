@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html>
+    <header>
+        <title>Adventure</title>
+    </header>
+    <body>
+        <h1>{{ .Title }}</h1>
+        {{range .Story}}
+        <p>{{.}}</p>
+        {{end}}
+
+        {{range .Options}}
+        <a href="{{ .Arc }}">{{ .Text }}</a><br>
+        {{end}}
+    </body>
+</html>
