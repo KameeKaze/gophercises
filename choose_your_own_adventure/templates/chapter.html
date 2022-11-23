@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html>
     <header>
+        <meta charset="UTF-8">
+        <link rel="stylesheet" href="css/styles.css">
         <title>Adventure</title>
     </header>
     <body>
         <h1>{{ .Title }}</h1>
+        <p>
         {{range .Story}}
-        <p>{{.}}</p>
+        {{.}}
         {{end}}
+        </p>
 
         {{range .Options}}
         <a href="{{ .Arc }}">{{ .Text }}</a><br>

@@ -20,12 +20,6 @@ type Chapter struct {
 	} `json:"options"`
 }
 
-type News struct {
-	Title  string
-	Story  string
-	Option []string
-}
-
 var (
 	Story map[string]Chapter
 )
@@ -41,11 +35,18 @@ func main() {
 	r := mux.NewRouter()
 
 	// define routes
+	r.HandleFunc("/", Home).Methods("GET")
+	r.PathPrefix("/css").Handler(http.StripPrefix("/css", http.FileServer(http.Dir("templates/css/")))).Methods("GET")
 	r.HandleFunc("/{url}", StoryHandler).Methods("GET")
 
 	//start http server
 	fmt.Println("Running on http://localhost" + ":8080")
 	http.ListenAndServe(":8080", r)
+}
+
+func Home(w http.ResponseWriter, r *http.Request) {
+	http.Redirect(w, r, "/intro", http.StatusPermanentRedirect)
+
 }
 
 func StoryHandler(w http.ResponseWriter, r *http.Request) {

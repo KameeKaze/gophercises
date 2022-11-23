@@ -22,6 +22,6 @@ solutions by me.
 ## Choose your own adventure
 *https://github.com/gophercises/cyoa*
 
-- [ ] Task
+- [x] Task
 - [ ] Bonus 1
 - [ ] Bonus 2
