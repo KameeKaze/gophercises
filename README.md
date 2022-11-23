@@ -29,5 +29,5 @@ solutions by me.
 ## HTML Link Parser
 *https://github.com/gophercises/link*
 
-- [ ] Task
+- [x] Task
 - [ ] Improvements

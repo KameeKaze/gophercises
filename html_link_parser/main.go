@@ -23,6 +23,7 @@ func main() {
 	z := html.NewTokenizer(strings.NewReader(string(file)))
 
 	links := []Link{}
+	defer fmt.Println(&links)
 	for {
 		tt := z.Next()
 
@@ -44,11 +45,14 @@ func main() {
 				}
 				// find text
 				z.Next()
-				link.Text = string(z.Text())
+				// trim whitespace characters
+				text := strings.TrimSpace(string(z.Text()))
+				link.Text = string(text)
 
 				links = append(links, link)
-				fmt.Println(links)
+
 			}
 		}
 	}
+
 }
