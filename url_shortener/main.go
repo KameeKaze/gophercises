@@ -1,46 +1,22 @@
 package main
 
 import (
-	"encoding/json"
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/boltdb/bolt"
 	"github.com/gorilla/mux"
-	"gopkg.in/yaml.v3"
 )
 
 var (
-	pathsToUrls map[string]string
-	DB          Database
+	DB Database
 )
 
 type Database struct {
 	db     *bolt.DB
 	tx     *bolt.Tx
 	bucket *bolt.Bucket
-}
-
-func init() {
-	// YAML file as a flag
-	var filename string
-	flag.StringVar(&filename, "f", "PathsToUrls.yaml", "Accept YAML file as a flag")
-	flag.Parse()
-
-	// open file containing the urls
-	file, err := os.ReadFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// check file extension and parse into map
-	if filename[len(filename)-4:] == "json" {
-		pathsToUrls = ParseJSON([]byte(file))
-	} else {
-		pathsToUrls = ParseYAML([]byte(file))
-	}
 }
 
 func main() {
@@ -57,17 +33,10 @@ func main() {
 		log.Fatal(err)
 	}
 	defer DB.tx.Rollback()
-	// create bucket
-	DB.bucket, err = DB.tx.CreateBucket([]byte("Redirects"))
+	// get bucket
+	DB.bucket = DB.tx.Bucket([]byte("Redirects"))
 	if err != nil {
 		log.Fatal(err)
-	}
-	// read into database from file
-	for k, v := range pathsToUrls {
-		err = DB.Put([]byte(k), []byte(v))
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 	r := mux.NewRouter()
 
@@ -97,34 +66,7 @@ func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1>The requested URL was not found.</h1>\n"))
 }
 
-// get urls from yaml
-func ParseYAML(data []byte) (yamlData map[string]string) {
-	// parse yaml data
-	err := yaml.Unmarshal(data, &yamlData)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// return yaml as map[string]string)
-	return yamlData
-}
-
-// get urls from json
-func ParseJSON(data []byte) (jsonData map[string]string) {
-	// parse json data
-	err := json.Unmarshal(data, &jsonData)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// return json as map[string]string)
-	return jsonData
-}
-
-func (db *Database) Put(key, value []byte) error {
-	err := db.bucket.Put(key, value)
-	return err
-}
-
 func (db *Database) Get(key []byte) string {
-	v := db.bucket.Get(key)
-	return string(v)
+	url := db.bucket.Get(key)
+	return string(url)
 }
