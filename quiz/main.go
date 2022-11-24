@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"log"
@@ -32,7 +33,10 @@ type Question struct {
 }
 
 func main() {
-	quiz := createQuiz()
+	quiz, err := createQuiz()
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// channel for timeout
 	timeout := make(chan bool)
@@ -65,7 +69,7 @@ func main() {
 		}
 		fmt.Println()
 	}
-	fmt.Printf("You scored %d points out of %d!\n", UserPoints, len(quiz))
+	fmt.Printf("You scored %d points out of %d!\n", userPoints, len(quiz))
 }
 
 func scanAnswer(answer *string, timeout chan<- bool) {
@@ -75,25 +79,24 @@ func scanAnswer(answer *string, timeout chan<- bool) {
 	}
 }
 
-func readFile(filename string) []byte {
-	// read file
-	file, err := os.ReadFile(filename)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return file
+func readFile(filename string) ([]byte, error) {
+	// read file and return
+	return os.ReadFile(filename)
 }
 
-func createQuiz() (quiz []*Question) {
+func createQuiz() (quiz []*Question, err error) {
 	// read file
-	file := readFile(Filename)
+	file, err := readFile(Filename)
+	if err != nil {
+		return
+	}
 	// split file by new line
 	for _, line := range strings.Split(string(file), "\n") {
 		// split line by comma
 		line := strings.Split(string(line), ",")
 		// check if question and answer seperated by a comme
 		if len(line) != 2 {
-			log.Fatal("Invalid file content")
+			err = errors.New("invalid file content")
 			return
 		}
 		// append to quiz
@@ -102,7 +105,7 @@ func createQuiz() (quiz []*Question) {
 			line[1],
 		})
 	}
-	return quiz
+	return quiz, nil
 }
 
 func checkAnswer(answer, solution string) int {
