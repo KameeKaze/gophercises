@@ -11,6 +11,7 @@ import (
 )
 
 var (
+	Filename    string
 	pathsToUrls map[string]string
 	DB          Database
 )
@@ -20,27 +21,29 @@ type Database struct {
 }
 
 func init() {
-	// YAML file as a flag
-	var filename string
-	flag.StringVar(&filename, "f", "PathsToUrls.yaml", "Accept YAML file as a flag")
+	flag.StringVar(&Filename, "f", "PathsToUrls.yaml", "Accept YAML file as a flag")
 	flag.Parse()
+}
 
-	// open file containing the urls
-	file, err := os.ReadFile(filename)
+func ReadFile(filename string) []byte {
+	// read file containing the urls
+	file, err := os.ReadFile(Filename)
 	if err != nil {
-		log.Fatal(err)
+		return nil
 	}
-	// check file extension and parse into map
-	if filename[len(filename)-4:] == "json" {
-		pathsToUrls = ParseJSON([]byte(file))
-	} else {
-		pathsToUrls = ParseYAML([]byte(file))
-	}
+	return file
 }
 
 func main() {
-	// connect to database
+	file := ReadFile(Filename)
+	// check file extension and parse into map
 	var err error
+	if Filename[len(Filename)-4:] == "json" {
+		pathsToUrls, err = ParseJSON(file)
+	} else {
+		pathsToUrls, err = ParseYAML(file)
+	}
+	// connect to database
 	DB.db, err = bolt.Open("urls.db", 0600, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -69,25 +72,19 @@ func main() {
 }
 
 // get urls from yaml
-func ParseYAML(data []byte) (yamlData map[string]string) {
+func ParseYAML(data []byte) (yamlData map[string]string, err error) {
 	// parse yaml data
-	err := yaml.Unmarshal(data, &yamlData)
-	if err != nil {
-		log.Fatal(err)
-	}
+	err = yaml.Unmarshal(data, &yamlData)
 	// return yaml as map[string]string)
-	return yamlData
+	return yamlData, err
 }
 
 // get urls from json
-func ParseJSON(data []byte) (jsonData map[string]string) {
+func ParseJSON(data []byte) (jsonData map[string]string, err error) {
 	// parse json data
-	err := json.Unmarshal(data, &jsonData)
-	if err != nil {
-		log.Fatal(err)
-	}
+	err = json.Unmarshal(data, &jsonData)
 	// return json as map[string]string)
-	return jsonData
+	return jsonData, err
 }
 
 // put to database

@@ -20,24 +20,13 @@ type Database struct {
 }
 
 func main() {
-	// connect to database
-	var err error
-	DB.db, err = bolt.Open("urls.db", 0600, nil)
+	err := ConnectToDB()
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer DB.db.Close()
-	// Start a writable transaction.
-	DB.tx, err = DB.db.Begin(true)
-	if err != nil {
-		log.Fatal(err)
-	}
 	defer DB.tx.Rollback()
-	// get bucket
-	DB.bucket = DB.tx.Bucket([]byte("Redirects"))
-	if err != nil {
-		log.Fatal(err)
-	}
+
 	r := mux.NewRouter()
 
 	// define routes
@@ -64,6 +53,26 @@ func UrlHandler(w http.ResponseWriter, r *http.Request) {
 func NotFoundHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotFound)
 	w.Write([]byte("<h1>The requested URL was not found.</h1>\n"))
+}
+
+func ConnectToDB() error {
+	// connect to database
+	var err error
+	DB.db, err = bolt.Open("urls.db", 0600, nil)
+	if err != nil {
+		return err
+	}
+	// Start a writable transaction.
+	DB.tx, err = DB.db.Begin(true)
+	if err != nil {
+		return err
+	}
+	// get bucket
+	DB.bucket = DB.tx.Bucket([]byte("Redirects"))
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (db *Database) Get(key []byte) string {
