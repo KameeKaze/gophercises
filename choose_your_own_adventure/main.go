@@ -30,7 +30,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	Story = ParseJSON([]byte(file))
+	Story, err = ParseJSON([]byte(file))
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	r := mux.NewRouter()
 
@@ -53,18 +56,15 @@ func StoryHandler(w http.ResponseWriter, r *http.Request) {
 	url := mux.Vars(r)["url"]
 	tmplt, err := template.ParseFiles("templates/chapter.html")
 	if err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	event := Story[url]
 	tmplt.Execute(w, event)
 }
 
 // parse json into struct
-func ParseJSON(data []byte) (story map[string]Chapter) {
+func ParseJSON(data []byte) (story map[string]Chapter, err error) {
 	// parse json data
-	err := json.Unmarshal(data, &story)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return story
+	err = json.Unmarshal(data, &story)
+	return story, err
 }
