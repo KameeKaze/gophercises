@@ -1,12 +1,14 @@
 package main
 
 import (
+	"bytes"
 	"flag"
-	"fmt"
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
+	"text/template"
 
 	"golang.org/x/net/html"
 )
@@ -36,10 +38,17 @@ func main() {
 	done := make(chan (bool))
 	go ParseLinks(string(body), done)
 	<-done
-	// print links
-	for x := range links {
-		fmt.Println(links[x])
+	// parse links into xml file
+	link, err := CreateXML(links)
+	if err != nil {
+		log.Fatal(err)
 	}
+	// write xml into file
+	err = WriteIntoFile("sitemap.xml", link)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 func ParseLinks(body string, done chan<- bool) {
@@ -76,4 +85,22 @@ func contains(s []string, str string) bool {
 		}
 	}
 	return false
+}
+
+func WriteIntoFile(filename string, data []byte) error {
+	err := os.WriteFile(filename, data, 0644)
+	return err
+}
+
+func CreateXML(links []string) ([]byte, error) {
+	t, err := template.ParseFiles("templates/sitemap.xml")
+	if err != nil {
+		return nil, err
+	}
+	var tpl bytes.Buffer
+	err = t.Execute(&tpl, links)
+	if err != nil {
+		return nil, err
+	}
+	return tpl.Bytes(), err
 }
