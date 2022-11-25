@@ -19,6 +19,7 @@ var (
 	URL   string
 	links []string
 	wg    sync.WaitGroup
+	mu    sync.Mutex
 )
 
 func init() {
@@ -62,6 +63,9 @@ func GetBody(url string) (string, error) {
 }
 
 func ParseLinks(url string) {
+	mu.Lock()
+	links = append(links, url)
+	mu.Unlock()
 	// get url body
 	body, err := GetBody(url)
 	if err != nil {
@@ -84,14 +88,15 @@ func ParseLinks(url string) {
 				for _, a := range t.Attr {
 					if a.Key == "href" { // link
 						// check if link already found
+						mu.Lock()
 						if !contains(links, a.Val) {
-							links = append(links, a.Val)
 							// recursive parse on new link
 							if strings.HasPrefix(a.Val, "/") {
 								wg.Add(1)
-								go ParseLinks(URL + a.Val)
+								go ParseLinks(url + a.Val)
 							}
 						}
+						mu.Unlock()
 						break
 					}
 				}
