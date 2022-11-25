@@ -7,14 +7,12 @@
     </header>
     <body>
         <h1>{{ .Title }}</h1>
-        <p>
-        {{range .Story}}
+        {{range .Story}} <p>
         {{.}}
-        {{end}}
-        </p>
-
+        </p>{{end}}
+        <br>
         {{range .Options}}
-        <a href="{{ .Arc }}">{{ .Text }}</a><br>
+        <a href="{{ .Arc }}">{{ .Text }}</a><br><br>
         {{end}}
     </body>
 </html>

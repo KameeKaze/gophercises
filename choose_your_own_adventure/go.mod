@@ -1,4 +1,4 @@
-module github.com/KameeKaze/gophercises/choose_your_own_adventure
+module github.com/KameeKaze/gophercises
 
 go 1.19
 
