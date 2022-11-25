@@ -3,41 +3,35 @@ package main
 import (
 	"bytes"
 	"flag"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"text/template"
 
 	"golang.org/x/net/html"
 )
 
 var (
-	url   string
+	URL   string
 	links []string
+	wg    sync.WaitGroup
 )
 
 func init() {
-	flag.StringVar(&url, "u", "https://calhoun.io", "URL")
+	flag.StringVar(&URL, "u", "https://google.com", "URL")
 	flag.Parse()
 }
 
 func main() {
-	// make get request and get body
-	resp, err := http.Get(url)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer resp.Body.Close()
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		log.Fatal(err)
-	}
-	// parse links in body
-	done := make(chan (bool))
-	go ParseLinks(string(body), done)
-	<-done
+	// start recursive link parsing
+	wg.Add(1)
+	go ParseLinks(URL)
+	wg.Wait()
+
 	// parse links into xml file
 	link, err := CreateXML(links)
 	if err != nil {
@@ -48,27 +42,55 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	fmt.Println("Sitemap generated to sitemap.xml")
+}
+
+func GetBody(url string) (string, error) {
+	// make get request and get body
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", err
+
+	}
+	defer resp.Body.Close()
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	return string(body), err
 
 }
 
-func ParseLinks(body string, done chan<- bool) {
-	z := html.NewTokenizer(strings.NewReader(string(body)))
+func ParseLinks(url string) {
+	// get url body
+	body, err := GetBody(url)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	// parse body
+	z := html.NewTokenizer(strings.NewReader(body))
 	for {
 		tt := z.Next()
 		switch tt {
-		// end of the document
-		case html.ErrorToken:
-			done <- true
+		case html.ErrorToken: // end of the document
+			wg.Done()
 			return
-		case html.StartTagToken:
+		case html.StartTagToken: // found html tag
 			t := z.Token()
 			// find link tag
-			if t.Data == "a" {
+			if t.Data == "a" { // html link tag
 				// find href
 				for _, a := range t.Attr {
-					if a.Key == "href" {
+					if a.Key == "href" { // link
+						// check if link already found
 						if !contains(links, a.Val) {
 							links = append(links, a.Val)
+							// recursive parse on new link
+							if strings.HasPrefix(a.Val, "/") {
+								wg.Add(1)
+								go ParseLinks(URL + a.Val)
+							}
 						}
 						break
 					}
