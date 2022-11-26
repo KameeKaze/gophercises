@@ -63,9 +63,6 @@ func GetBody(url string) (string, error) {
 }
 
 func ParseLinks(url string) {
-	mu.Lock()
-	links = append(links, url)
-	mu.Unlock()
 	// get url body
 	body, err := GetBody(url)
 	if err != nil {
@@ -87,14 +84,13 @@ func ParseLinks(url string) {
 				// find href
 				for _, a := range t.Attr {
 					if a.Key == "href" { // link
-						// check if link already found
 						mu.Lock()
-						if !contains(links, a.Val) {
-							// recursive parse on new link
-							if strings.HasPrefix(a.Val, "/") {
-								wg.Add(1)
-								go ParseLinks(url + a.Val)
-							}
+						// check first character of link,    link nof found
+						if strings.HasPrefix(a.Val, "/") && !contains(links, URL+a.Val) {
+							// add to found links
+							links = append(links, URL+a.Val)
+							wg.Add(1)
+							go ParseLinks(URL + a.Val) // recursive search
 						}
 						mu.Unlock()
 						break
