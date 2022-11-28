@@ -45,9 +45,12 @@ func main() {
 		// add task into database
 		task := Task{}
 		task.Name = strings.Join(args[1:], " ")
-		Update(task)
+		err = Add(task)
+		if err != nil {
+			log.Fatal(err)
+		}
 		fmt.Printf("Added \"%s\" to your task list.\n", task.Name)
-	case "do":
+	case "do": // change task status to done
 		// need task number
 		if len(args) == 1 {
 			fmt.Println("Enter a number!")
@@ -59,8 +62,25 @@ func main() {
 			fmt.Println("Enter a number!")
 			os.Exit(1)
 		}
-		fmt.Println(number)
-		// TODO
+		// get task from database
+		task, err := Get(itob(number))
+		if err != nil {
+			fmt.Println("No task found with this number.")
+			os.Exit(1)
+		}
+		// check if task was already done
+		if task.Done {
+			fmt.Println("This task was already done.")
+			return
+		}
+		// change task status
+		task.Done = true
+		// update task in database
+		err = Update(task)
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Printf("You have completed the \"%s\" task.\n", task.Name)
 	case "list": // print all undone tasks
 		tasks, err := ViewAll()
 		if err != nil {
@@ -102,7 +122,7 @@ func itob(v int) []byte {
 }
 
 // add task to the database
-func Update(task Task) error {
+func Add(task Task) error {
 	return db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(bucketName))
 		// create task id
@@ -115,6 +135,21 @@ func Update(task Task) error {
 			return err
 		}
 		// store id and json in database
+		err = b.Put(itob(task.ID), buf)
+		return err
+	})
+}
+
+// add task to the database
+func Update(task Task) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketName))
+		// convert task to json
+		buf, err := json.Marshal(task)
+		if err != nil {
+			return err
+		}
+		// update id and json in database
 		err = b.Put(itob(task.ID), buf)
 		return err
 	})
@@ -144,12 +179,16 @@ func ViewAll() ([]Task, error) {
 
 // get element from database from given key
 // convert int to byte with itob()
-func View(index []byte) ([]byte, error) {
-	var v []byte
+func Get(index []byte) (Task, error) {
+	var task Task
 	err := db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte((bucketName)))
-		v = b.Get((index))
+		v := b.Get((index))
+		err := json.Unmarshal(v, &task)
+		if err != nil {
+			return err
+		}
 		return nil
 	})
-	return v, err
+	return task, err
 }
