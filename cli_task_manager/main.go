@@ -104,6 +104,17 @@ func main() {
 				fmt.Printf("%d. %s\n", tasks[i].ID, tasks[i].Name)
 			}
 		}
+	case "completed": // print all finished tasks
+		tasks, err := ViewAll()
+		if err != nil {
+			log.Fatal(err)
+		}
+		fmt.Println("You have the following tasks done:")
+		for i := range tasks {
+			if tasks[i].Done {
+				fmt.Printf("%d. %s\n", tasks[i].ID, tasks[i].Name)
+			}
+		}
 	// invalid option
 	default:
 		fmt.Printf("Unrecognised option %s.\n", args[0])
