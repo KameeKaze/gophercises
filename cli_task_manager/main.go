@@ -24,10 +24,22 @@ var (
 	bucketName = "tasks"
 )
 
+const (
+	usage = `task is a CLI for managing your TODOs.
+
+	Usage:
+		task [command]
+	
+	Available Commands:
+		add         Add a new task to your TODO list
+		do          Mark a task on your TODO list as complete
+		list        List all of your incomplete tasks`
+)
+
 func main() {
 	// no arguements
 	if len(args) == 0 {
-		fmt.Println("Too few arguements")
+		fmt.Println(usage)
 		os.Exit(1)
 	}
 	err := DBInit()
@@ -40,7 +52,7 @@ func main() {
 		// task needs a name
 		if len(args) == 1 {
 			fmt.Println("Enter a name!")
-			os.Exit(1)
+			return
 		}
 		// add task into database
 		task := Task{}
@@ -92,7 +104,6 @@ func main() {
 				fmt.Printf("%d. %s\n", tasks[i].ID, tasks[i].Name)
 			}
 		}
-
 	// invalid option
 	default:
 		fmt.Printf("Unrecognised option %s.\n", args[0])
