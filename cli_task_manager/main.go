@@ -33,7 +33,9 @@ const (
 	Available Commands:
 		add         Add a new task to your TODO list
 		do          Mark a task on your TODO list as complete
-		list        List all of your incomplete tasks`
+		list        List all of your incomplete tasks
+		rm          Remove a task from your TODO list
+		completed   List all of your completed tasks`
 )
 
 func main() {
@@ -78,7 +80,6 @@ func main() {
 		task, err := Get(itob(number))
 		if err != nil {
 			fmt.Println("No task found with this number.")
-			os.Exit(1)
 		}
 		// check if task was already done
 		if task.Done {
@@ -93,6 +94,27 @@ func main() {
 			log.Fatal(err)
 		}
 		fmt.Printf("You have completed the \"%s\" task.\n", task.Name)
+	case "rm": // print all undone tasks
+		// need task number
+		if len(args) == 1 {
+			fmt.Println("Enter a number!")
+			os.Exit(1)
+		}
+		// convert to int
+		number, err := strconv.Atoi(args[1])
+		if err != nil {
+			fmt.Println("Enter a number!")
+			os.Exit(1)
+		}
+		// get task from database
+		task, err := Get(itob(number))
+		if err != nil {
+			fmt.Println("No task found with this number.")
+		}
+		err = Delete(itob(task.ID))
+		if err != nil {
+			log.Fatal(err)
+		}
 	case "list": // print all undone tasks
 		tasks, err := ViewAll()
 		if err != nil {
@@ -172,8 +194,16 @@ func Update(task Task) error {
 			return err
 		}
 		// update id and json in database
-		err = b.Put(itob(task.ID), buf)
-		return err
+		return b.Put(itob(task.ID), buf)
+	})
+}
+
+// add task to the database
+func Delete(index []byte) error {
+	return db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(bucketName))
+		// update id and json in database
+		return b.Delete(index)
 	})
 }
 
