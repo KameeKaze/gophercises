@@ -37,3 +37,9 @@ solutions by me.
 
 - [x] Task
 - [ ] Bonus
+
+## CLI Task Manager
+*https://github.com/gophercises/task*
+
+- [x] Task
+- [ ] Bonus
