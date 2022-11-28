@@ -35,5 +35,5 @@ solutions by me.
 ## Sitemap Builder
 *https://github.com/gophercises/sitemap*
 
-- [ ] Task
+- [x] Task
 - [ ] Bonus
