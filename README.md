@@ -43,3 +43,9 @@ solutions by me.
 
 - [x] Task
 - [ ] Bonus
+
+## Deck of Cards
+*https://github.com/gophercises/deck/*
+
+- [ ] Task
+- [ ] Bonus
